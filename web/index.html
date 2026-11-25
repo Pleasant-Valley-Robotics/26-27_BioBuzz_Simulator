@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:,">
+<meta charset="utf-8">
+<title>BioBuzz Sim: Radical 7196</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="view" tabindex="0"></canvas>
+
+<div id="topbar" class="panelish">
+  <span id="title">BioBuzz Sim <b>7196 Radical</b></span>
+  <span id="conn" class="badge bad">disconnected</span>
+  <span id="mockBadge" class="badge warn hidden">MOCK DATA</span>
+  <span class="sep"></span>
+  <span id="cams">
+    <button data-cam="orbit" class="on" title="Key 1">1 Orbit</button>
+    <button data-cam="follow" title="Key 2">2 Follow</button>
+    <button data-cam="top" title="Key 3">3 Top</button>
+    <button data-cam="driver" title="Key 4">4 Driver</button>
+  </span>
+  <span class="sep"></span>
+  <button id="knobsBtn" title="Tuning knobs">Knobs</button>
+</div>
+
+<div id="left" class="col">
+  <section class="panel" id="p-ds">
+    <h3>Driver Station</h3>
+    <div class="body">
+      <div class="codebox" id="codeBox">
+        <div class="row">
+          <span id="codeBranch" class="mono">no code loaded</span>
+          <span id="codeDirty" class="badge warn hidden">modified</span>
+          <span id="codeOk" class="badge">?</span>
+        </div>
+        <div id="codePath" class="dim small ellip"></div>
+        <div class="row">
+          <span id="codeTime" class="dim small grow"></span>
+          <button id="reloadBtn" title="Recompile the team's Java">Reload code</button>
+        </div>
+        <ul id="codeErrors" class="errors hidden"></ul>
+      </div>
+      <div class="row">
+        <label class="grow">OpMode
+          <select id="opSelect"></select>
+        </label>
+      </div>
+      <div class="row btns">
+        <button id="initBtn" class="big">INIT</button>
+        <button id="startBtn" class="big go">START</button>
+        <button id="stopBtn" class="big stop">STOP</button>
+      </div>
+      <div class="row">
+        <span class="dim">Status</span><span id="opStatus" class="badge">NONE</span>
+        <span id="opName" class="dim small ellip grow"></span>
+      </div>
+      <div class="row">
+        <span class="dim">Alliance</span>
+        <button id="allyBlue" class="ally blue">BLUE</button>
+        <button id="allyRed" class="ally red">RED</button>
+        <span class="grow"></span>
+        <button id="resetBtn" title="Reset balls, HIVEs, score and robot">Reset field</button>
+      </div>
+      <div class="row">
+        <select id="poseSelect" class="grow" title="Start pose presets">
+          <option value="-63.02,13.65,180">Blue back wall (-63.0, 13.7, 180)</option>
+          <option value="0.43,64.5,89">Blue wall center (0.4, 64.5, 89)</option>
+          <option value="63.02,-13.65,0">Red audience wall (63.0, -13.7, 0)</option>
+          <option value="-0.43,-64.5,-91">Red wall center (-0.4, -64.5, -91)</option>
+        </select>
+        <button id="placeBtn" title="Put the robot on this pose">Place</button>
+      </div>
+      <div class="row">
+        <label>Speed
+          <select id="speedSelect">
+            <option value="0">pause</option>
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
+          </select>
+        </label>
+      </div>
+      <div class="sub">
+        <div class="subhead">Full match (AUTO 0:30, 0:08, TELEOP 2:00)</div>
+        <div class="row">
+          <select id="fmAuto" class="grow" title="Auto OpMode"></select>
+          <select id="fmTeleop" class="grow" title="TeleOp OpMode"></select>
+        </div>
+        <div class="row"><button id="fullMatchBtn" class="grow">Run full match</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-ctrl">
+    <h3>Controllers</h3>
+    <div class="body">
+      <div class="row">
+        <span class="dim">Gamepad 1</span>
+        <span id="padId" class="small ellip grow">no controller (keyboard fallback)</span>
+      </div>
+      <div class="row">
+        <span id="padMap" class="badge">none</span>
+        <span class="grow"></span>
+        <button id="calibBtn" class="hidden">Calibrate</button>
+      </div>
+      <div class="row pads">
+        <div class="stick" id="g1l"><i></i></div>
+        <div class="stick" id="g1r"><i></i></div>
+        <div id="g1b" class="btnlist mono small grow"></div>
+      </div>
+      <div class="row">
+        <span class="dim">Gamepad 2</span><span class="small grow">keyboard</span>
+      </div>
+      <div class="row pads">
+        <div class="stick" id="g2l"><i></i></div>
+        <div class="stick" id="g2r"><i></i></div>
+        <div id="g2b" class="btnlist mono small grow"></div>
+      </div>
+      <table class="legend small">
+        <tr><th colspan="2">Gamepad 2 keys (launcher, intake)</th></tr>
+        <tr><td><kbd>Q</kbd></td><td>left bumper: launcher on</td></tr>
+        <tr><td><kbd>B</kbd></td><td>B: launcher off</td></tr>
+        <tr><td><kbd>Up</kbd> <kbd>Down</kbd></td><td>dpad: speed nudge</td></tr>
+        <tr><td><kbd>W</kbd> <kbd>S</kbd></td><td>left stick Y: feeder (S pulls back = feed)</td></tr>
+        <tr><td><kbd>I</kbd> <kbd>K</kbd></td><td>right stick Y: I intake, K outtake</td></tr>
+        <tr><th colspan="2">Gamepad 1 keys (only with no controller)</th></tr>
+        <tr><td><kbd>T</kbd> <kbd>G</kbd></td><td>forward, back</td></tr>
+        <tr><td><kbd>F</kbd> <kbd>H</kbd></td><td>strafe left, right</td></tr>
+        <tr><td><kbd>R</kbd> <kbd>Y</kbd></td><td>turn left, right</td></tr>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div id="right" class="col">
+  <section class="panel" id="p-match">
+    <h3>Match</h3>
+    <div class="body">
+      <div class="row clockrow">
+        <span id="phase" class="badge">IDLE</span>
+        <span id="clock" class="clock">0:00</span>
+      </div>
+      <table class="score">
+        <thead><tr><th></th><th class="bluec">Blue</th><th class="redc">Red</th></tr></thead>
+        <tbody>
+          <tr><td>Leave</td><td id="sb-leave">0</td><td id="sr-leave">0</td></tr>
+          <tr><td>Park</td><td id="sb-park">0</td><td id="sr-park">0</td></tr>
+          <tr><td>Tips</td><td id="sb-tips">0</td><td id="sr-tips">0</td></tr>
+          <tr><td>Tip points</td><td id="sb-tipPts">0</td><td id="sr-tipPts">0</td></tr>
+          <tr><td>Cell</td><td id="sb-cell">0</td><td id="sr-cell">0</td></tr>
+          <tr class="total"><td>Total</td><td id="sb-total">0</td><td id="sr-total">0</td></tr>
+        </tbody>
+      </table>
+      <div class="row small" id="rpRow">
+        <span class="dim">Tips for RP</span>
+        <span id="rp1" class="badge">0/4</span>
+        <span id="rp2" class="badge">0/7</span>
+      </div>
+      <div class="row small dim" id="hiveRow"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-launcher">
+    <h3>Launcher</h3>
+    <div class="body">
+      <div class="bar"><div id="flyFill"></div><div id="flyMark"></div></div>
+      <div class="row">
+        <span id="flyText" class="mono grow">0 / 0 tps</span>
+        <span class="dim">held</span>
+        <span id="heldDots" class="dots"><i></i><i></i><i></i><i></i></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-telemetry">
+    <h3>Telemetry</h3>
+    <div class="body"><pre id="telemetry" class="mono">(no telemetry yet)</pre></div>
+  </section>
+
+  <section class="panel" id="p-events">
+    <h3>Events</h3>
+    <div class="body"><ul id="events" class="events mono small"></ul></div>
+  </section>
+</div>
+
+<div id="knobs" class="drawer hidden">
+  <div class="drawerhead"><b>Tuning knobs</b><button id="knobsClose">Close</button></div>
+  <div id="knobsBody"></div>
+</div>
+
+<div id="report" class="hidden">
+  <div class="drawerhead"><b>Run report</b><button id="reportClose">Dismiss</button></div>
+  <pre id="reportText" class="mono"></pre>
+</div>
+
+<div id="calib" class="hidden">
+  <div class="drawerhead"><b>Controller calibration</b><button id="calibCancel">Cancel</button></div>
+  <div id="calibStep" class="big"></div>
+  <div class="row"><button id="calibSkip">Skip this one</button><span id="calibProg" class="dim grow"></span></div>
+</div>
+
+<div id="hint" class="dim small">drag: orbit, right-drag or shift-drag: pan, wheel: zoom</div>
+
+<script src="vendor/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

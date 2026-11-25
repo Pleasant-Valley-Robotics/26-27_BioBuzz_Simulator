@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.brott.dev/' }
+}
+
+dependencies {
+    // The real RoadRunner math and action libraries (pure JVM), exactly the versions the team uses.
+    implementation 'com.acmerobotics.roadrunner:core:1.0.1'
+    implementation 'com.acmerobotics.roadrunner:actions:1.0.1'
+    implementation 'com.acmerobotics.dashboard:core:0.5.1'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.7'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    runtimeOnly 'org.slf4j:slf4j-nop:2.0.13'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:-options', '-parameters']
+}
+
+application {
+    mainClass = 'sim.Main'
+    applicationDefaultJvmArgs = ['-Xmx512m']
+}

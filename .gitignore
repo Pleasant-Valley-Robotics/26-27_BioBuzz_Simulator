@@ -1,0 +1,13 @@
+.cache/
+.gradle/
+build/
+engine/build/
+*.class
+.DS_Store
+reports/
+
+knobs.json
+
+# Kept on your own machine only: the FIRST game manual (get it from FIRST) and build photos.
+docs/*.pdf
+docs/robot-photos/

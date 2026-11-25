@@ -1,0 +1,9 @@
+#!/bin/sh
+# BioBuzz simulator launcher for macOS and Linux. On Windows use sim.bat (same arguments).
+#   ./sim                       build, start the engine, open the 3D page in the browser
+#   ./sim test list             list the OpModes in the checked-out code
+#   ./sim test <OpMode> [--runs N] [--code <branch>] [--verbose]
+#   ./sim shots                 shot accuracy table
+cd "$(dirname "$0")" || exit 1
+./gradlew -q :engine:installDist || exit 1
+exec engine/build/install/engine/bin/engine "$@"
