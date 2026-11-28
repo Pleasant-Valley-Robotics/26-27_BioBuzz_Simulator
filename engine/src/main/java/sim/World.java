@@ -117,6 +117,10 @@ public final class World {
     public final ServoSim rightFeeder = new ServoSim("rightFeeder", -1);
     public final ServoSim launcherFeeder = new ServoSim("launcherFeeder", -1);
     public int held = 4;
+    /** flowerStick servo: commanded and actual position (0 stowed, 1 reached out), and the FLOWER it has hooked. */
+    public double stickCmd = 0, stickPos = 0;
+    private int stickHook = -1;
+    private boolean stickArmed = true;
     private double feedProgress, outtakeTimer, intakeCooldown;
     public volatile double[] est = null;
     public String alliance = "BLUE";
@@ -194,6 +198,7 @@ public final class World {
             feedProgress = 0;
             outtakeTimer = 0;
             intakeCooldown = 0;
+            stickCmd = 0; stickPos = 0; stickHook = -1; stickArmed = true;
             leaveAuto = false; parkAuto = false; parkEnd = false;
             autoPeriod = true;
             est = null;
@@ -441,6 +446,8 @@ public final class World {
             feedProgress = Math.max(0, feedProgress + fp * dt / knobs.feedSecPerBall);
         }
 
+        stepStick(dt);
+
         // intake: balls on the floor at the front mouth
         double ip = intake.physPower();
         intakeCooldown -= dt;
@@ -455,7 +462,7 @@ public final class World {
             for (int i = 0; i < balls.size(); i++) {
                 Ball b = balls.get(i);
                 if (b.kind != 0 || b.out) continue;
-                if (!(b.state == FLOOR || (b.state == FLOWER && b.b == 0))) continue;
+                if (!(b.state == FLOOR || (knobs.flowerIntake >= 0.5 && b.state == FLOWER && b.b == 0))) continue;
                 double dx = b.x - rx, dy = b.y - ry;
                 double lx = dx * c + dy * s, ly = -dx * s + dy * c;
                 if (lx > HL - reachBack && lx < HL + 2.4 && Math.abs(ly) < halfMouth) {
@@ -488,6 +495,82 @@ public final class World {
             }
         } else {
             outtakeTimer = 0;
+        }
+    }
+
+    /**
+     * flowerStick: a hook on the front of the robot, near the floor, reaching up to STICK_REACH in past the
+     * front face. Reaching out with the stick passing through a FLOWER's bottom POLLEN hooks it; pulling back
+     * in drags that POLLEN out of the FLOWER onto the floor, toward the robot. It comes out rolling and a bit
+     * to one side, so it does not go straight into the intake: the robot has to drive in and pick it up.
+     * One POLLEN per stroke; the stick must come back in before it can hook again.
+     */
+    public static final double STICK_REACH = 10.0, STICK_SEC = 0.25, STICK_GRAB = 2.5;
+
+    private void stepStick(double dt) {
+        double step = dt / STICK_SEC;
+        stickPos += Math.max(-step, Math.min(step, stickCmd - stickPos));
+        double c = Math.cos(rh), s = Math.sin(rh);
+        if (stickPos > 0.95 && stickArmed && stickHook < 0) {
+            stickArmed = false;
+            for (int f = 0; f < FLOWERS.length; f++) {
+                // closest approach of the stick (front face to tip, robot centerline) to the FLOWER's center
+                double dx = FLOWERS[f][0] - rx, dy = FLOWERS[f][1] - ry;
+                double along = dx * c + dy * s, side = -dx * s + dy * c;
+                double a = Math.max(HL, Math.min(HL + STICK_REACH * stickPos, along));
+                if (Math.hypot(along - a, side) > STICK_GRAB) continue;
+                for (Ball b : balls) {
+                    if (b.state == FLOWER && b.a == f && b.b == 0) { stickHook = f; break; }
+                }
+                if (stickHook >= 0) {
+                    event("stick", "flowerStick hooked a POLLEN");
+                    break;
+                }
+            }
+            if (stickHook < 0) event("stick", "flowerStick reached out but hooked nothing");
+        }
+        if (stickPos < 0.3) {
+            stickArmed = true;
+            if (stickHook >= 0) {
+                int f = stickHook;
+                stickHook = -1;
+                Ball got = null;
+                for (Ball b : balls) if (b.state == FLOWER && b.a == f && b.b == 0) { got = b; break; }
+                if (got != null) {
+                    for (Ball o : balls) {
+                        if (o.state == FLOWER && o.a == f && o != got) { o.b--; o.z = o.r + 2.8 * o.b; }
+                    }
+                    // out of the FLOWER's bottom ring on the robot's side, rolling toward the robot, scattered
+                    double fx = FLOWERS[f][0], fy = FLOWERS[f][1];
+                    double ux = rx - fx, uy = ry - fy, un = Math.hypot(ux, uy);
+                    ux /= un; uy /= un;
+                    double off = 2 + got.r + 0.5, lat = (rng.nextDouble() * 2 - 1) * 2.5;
+                    got.state = FLOOR;
+                    got.x = fx + ux * off - uy * lat; got.y = fy + uy * off + ux * lat; got.z = got.r;
+                    double ang = Math.toRadians(rng.nextGaussian() * 30), sp = 15 + rng.nextDouble() * 15;
+                    double ca = Math.cos(ang), sa = Math.sin(ang);
+                    got.vx = sp * (ux * ca - uy * sa); got.vy = sp * (ux * sa + uy * ca); got.vz = 0;
+                    floorBounds(got);
+                    event("stick", "flowerStick pulled a POLLEN out of the FLOWER onto the floor");
+                }
+            }
+        }
+    }
+
+    /**
+     * What the Limelight (on the launcher side of the robot, 30 deg either way, up to 110 in) reports about the
+     * alliance HIVE, or null when the HIVE is out of view. Format: see Limelight3A.
+     */
+    public double[] limelightHive() {
+        synchronized (LOCK) {
+            Hive h = alliance.equals("RED") ? red : blue;
+            double camH = rh + Math.PI;
+            double dx = 0 - rx, dy = h.y - ry;
+            double range = Math.hypot(dx, dy);
+            double bearing = Math.atan2(Math.sin(Math.atan2(dy, dx) - camH), Math.cos(Math.atan2(dy, dx) - camH));
+            if (range > 110 || Math.abs(bearing) > Math.toRadians(30)) return null;
+            double tilt = h.phi;
+            return new double[] {h.index, 4, range, Math.toDegrees(bearing), PIVOT_Z, 0, tilt, 0};
         }
     }
 
@@ -944,6 +1027,8 @@ public final class World {
             sb.append(",\"flyVel\":"); num(sb, launcher.tps, 1);
             sb.append(",\"flyTarget\":"); num(sb, launcher.velCmd ? launcher.physVelTarget() : 0, 1);
             sb.append(",\"held\":").append(held);
+            sb.append(",\"stick\":").append(String.format(java.util.Locale.US, "%.3f", stickPos));
+            sb.append(",\"stick\":").append(String.format(java.util.Locale.US, "%.3f", stickPos));
             sb.append("},\"balls\":[");
             boolean first = true;
             for (Ball b : balls) {

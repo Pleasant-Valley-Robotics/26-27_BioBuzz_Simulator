@@ -53,9 +53,10 @@ public final class OpRunner {
         hw.put("leftFeeder", new CRServoFacade(world.leftFeeder, c));
         hw.put("rightFeeder", new CRServoFacade(world.rightFeeder, c));
         hw.put("launcherFeeder", new CRServoFacade(world.launcherFeeder, c));
+        hw.put("flowerStick", new sim.hw.StickServoFacade(world, c));
         hw.put("imu", new ImuFacade(world));
         hw.put("pinpoint", new GoBildaPinpointDriver(world.truth(c)));
-        hw.put("limelight", new Limelight3A());
+        hw.put("limelight", new Limelight3A(world::limelightHive));
         hw.put("Control Hub", new LynxModule("Control Hub", true));
         hw.put("Expansion Hub 2", new LynxModule("Expansion Hub 2", false));
         hw.put("Control Hub", (VoltageSensor) () -> { SimClock.touch(); return knobs.batteryVolts; });

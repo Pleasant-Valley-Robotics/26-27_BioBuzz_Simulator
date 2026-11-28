@@ -84,6 +84,36 @@ function motor(len, mat, band) {
   return g;
 }
 
+// goBILDA FTC StarterBot with Mecanum Wheels (3200-2627-0004), converted from goBILDA's STEP file and
+// simplified. models/starterbot.json lists color groups; models/starterbot.bin holds float32 positions
+// (inches, model frame above) followed by uint32 indices, each group's indices local to its own vertices.
+let cadData = null;
+function loadCad() {
+  if (!cadData) {
+    cadData = Promise.all([
+      fetch('models/starterbot.json').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch('models/starterbot.bin').then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }),
+    ]);
+    cadData.catch(() => { cadData = null; });
+  }
+  return cadData.then(([meta, buf]) => {
+    const pos = new Float32Array(buf, 0, meta.vertices * 3);
+    const idx = new Uint32Array(buf, meta.vertices * 12, meta.indices);
+    const cad = new T.Group();
+    for (const g of meta.groups) {
+      const geo = new T.BufferGeometry();
+      geo.setAttribute('position', new T.BufferAttribute(pos.subarray(g.vOff * 3, (g.vOff + g.vCount) * 3), 3));
+      geo.setIndex(new T.BufferAttribute(idx.subarray(g.iOff, g.iOff + g.iCount), 1));
+      geo.computeVertexNormals();
+      const [r, gr, b] = g.color;
+      const mat = new T.MeshPhongMaterial({ color: new T.Color(r / 255, gr / 255, b / 255), flatShading: true,
+        side: T.DoubleSide, shininess: r > 200 && gr > 200 ? 60 : 15 });
+      cad.add(new T.Mesh(geo, mat));
+    }
+    return cad;
+  });
+}
+
 export function buildRobot(R) {
   const group = new T.Group();
   const L = R.length, W = R.width, H = R.height, wr = R.wheelRadius;
@@ -284,6 +314,21 @@ export function buildRobot(R) {
   }
   setLaunchAngle(60);
 
+  // goBILDA StarterBot CAD: replaces the primitive model once it has loaded (add ?cad=0 to the URL to keep
+  // the primitive one). The held POLLEN and the throw line stay visible on top of it.
+  // flowerStick: a hook reaching up to 10 in out of the front, 1.5 in off the floor (drawn only while out)
+  const stickMesh = box(0.5, 0.5, 1, lambert(0xff3b6b), 0, 1.5, hl);
+  stickMesh.visible = false;
+  group.add(stickMesh);
+
+  const primitives = group.children.filter((c) => c !== throwLine && c !== stickMesh && !held.includes(c));
+  if (!/[?&]cad=0/.test(location.search)) {
+    loadCad().then((cad) => {
+      group.add(cad);
+      for (const c of primitives) c.visible = false;
+    }).catch((e) => console.warn('StarterBot CAD not loaded, keeping the simple robot:', e));
+  }
+
   function update(r) {
     group.position.set(r.y, 0, r.x);
     group.rotation.y = r.h;
@@ -297,6 +342,13 @@ export function buildRobot(R) {
     fly.rotation.x = -(r.flywheel || 0);
     for (let i = 0; i < held.length; i++) held[i].visible = i < (r.held || 0);
     throwLine.visible = (r.flyTarget || 0) > 0;
+    const out = r.stick || 0;
+    stickMesh.visible = out > 0.02;
+    if (stickMesh.visible) {
+      const len = 2 + 10 * out;           // starts 2 in inside the front face
+      stickMesh.scale.z = len;
+      stickMesh.position.z = hl - 2 + len / 2;
+    }
   }
 
   return { group, update, setLaunchAngle };

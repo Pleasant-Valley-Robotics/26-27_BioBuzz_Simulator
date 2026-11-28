@@ -1,0 +1,187 @@
+{
+ "source": "goBILDA FTC StarterBot with Mecanum Wheels (3200-2627-0004), STEP from gobilda.com, decimated",
+ "units": "inches",
+ "frame": "X left, Y up, Z forward (intake)",
+ "vertices": 79511,
+ "indices": 568389,
+ "bounds": [
+  [
+   -8.890000343322754,
+   0.0,
+   -7.949999809265137
+  ],
+  [
+   8.899999618530273,
+   12.140000343322754,
+   9.829999923706055
+  ]
+ ],
+ "groups": [
+  {
+   "color": [
+    176,
+    183,
+    192
+   ],
+   "vOff": 0,
+   "vCount": 25556,
+   "iOff": 0,
+   "iCount": 202743
+  },
+  {
+   "color": [
+    24,
+    24,
+    24
+   ],
+   "vOff": 25556,
+   "vCount": 16657,
+   "iOff": 202743,
+   "iCount": 121113
+  },
+  {
+   "color": [
+    0,
+    0,
+    0
+   ],
+   "vOff": 42213,
+   "vCount": 11613,
+   "iOff": 323856,
+   "iCount": 79299
+  },
+  {
+   "color": [
+    176,
+    183,
+    192
+   ],
+   "vOff": 53826,
+   "vCount": 9166,
+   "iOff": 403155,
+   "iCount": 67461
+  },
+  {
+   "color": [
+    168,
+    168,
+    192
+   ],
+   "vOff": 62992,
+   "vCount": 7646,
+   "iOff": 470616,
+   "iCount": 48726
+  },
+  {
+   "color": [
+    168,
+    168,
+    168
+   ],
+   "vOff": 70638,
+   "vCount": 3218,
+   "iOff": 519342,
+   "iCount": 22203
+  },
+  {
+   "color": [
+    240,
+    168,
+    0
+   ],
+   "vOff": 73856,
+   "vCount": 2497,
+   "iOff": 541545,
+   "iCount": 14556
+  },
+  {
+   "color": [
+    168,
+    144,
+    144
+   ],
+   "vOff": 76353,
+   "vCount": 1354,
+   "iOff": 556101,
+   "iCount": 4416
+  },
+  {
+   "color": [
+    144,
+    144,
+    144
+   ],
+   "vOff": 77707,
+   "vCount": 672,
+   "iOff": 560517,
+   "iCount": 2868
+  },
+  {
+   "color": [
+    48,
+    48,
+    48
+   ],
+   "vOff": 78379,
+   "vCount": 433,
+   "iOff": 563385,
+   "iCount": 2775
+  },
+  {
+   "color": [
+    176,
+    183,
+    192
+   ],
+   "vOff": 78812,
+   "vCount": 145,
+   "iOff": 566160,
+   "iCount": 1056
+  },
+  {
+   "color": [
+    96,
+    96,
+    96
+   ],
+   "vOff": 78957,
+   "vCount": 256,
+   "iOff": 567216,
+   "iCount": 675
+  },
+  {
+   "color": [
+    0,
+    24,
+    144
+   ],
+   "vOff": 79213,
+   "vCount": 220,
+   "iOff": 567891,
+   "iCount": 282
+  },
+  {
+   "color": [
+    192,
+    144,
+    72
+   ],
+   "vOff": 79433,
+   "vCount": 61,
+   "iOff": 568173,
+   "iCount": 150
+  },
+  {
+   "color": [
+    255,
+    0,
+    0
+   ],
+   "vOff": 79494,
+   "vCount": 17,
+   "iOff": 568323,
+   "iCount": 66
+  }
+ ],
+ "triangles": 189463
+}

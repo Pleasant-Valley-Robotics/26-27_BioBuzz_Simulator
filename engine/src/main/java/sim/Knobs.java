@@ -46,6 +46,7 @@ public final class Knobs {
     public double ballFriction = 45.0;
     public double dragPerInch = 0.0012;
     public double preload = 4.0;
+    public double flowerIntake = 0.0;
     public double seed = 0.0;
 
     public static final class Meta {
@@ -84,6 +85,7 @@ public final class Knobs {
         META.add(new Meta("ballFriction", "Ball rolling friction (in/s^2)", F, 5, 200, 1));
         META.add(new Meta("dragPerInch", "Ball air drag (1/in)", F, 0, 0.006, 0.0001));
         META.add(new Meta("preload", "POLLEN preloaded in the robot", F, 0, 4, 1));
+        META.add(new Meta("flowerIntake", "Intake can take POLLEN straight out of a FLOWER (1 = yes, 0 = needs the flowerStick)", F, 0, 1, 1));
         META.add(new Meta("seed", "Random seed (0 = new every reset)", F, 0, 99999, 1));
     }
 
